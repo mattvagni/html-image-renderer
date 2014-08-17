@@ -17,6 +17,7 @@
     "express": "^4.8.4",
     "hogan-express": "^0.5.2",
     "morgan": "^1.2.2",
-    "colors": "^0.6.2"
+    "colors": "^0.6.2",
+    "underscore": "^1.6.0"
   }
 }

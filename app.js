@@ -6,8 +6,17 @@ var packageJSON = require('./package.json');
 var childProcess = require('child_process');
 var url = require('url');
 var fs = require('fs');
+var _ = require('underscore');
 
+/*
+Port on which to do magic.
+*/
 var PORT = 3000;
+
+/*
+A list of available templates.
+*/
+var TEMPLATES = fs.readdirSync(__dirname + '/templates/images/');
 
 /*
 Return a unique image url based on the version of renderer, template & data
@@ -52,7 +61,7 @@ var app = express();
 Setup
 */
 app.set('views', __dirname + '/templates/');
-app.set('layout', __dirname + '/templates/_base.html');
+app.set('layout', __dirname + '/templates/_layouts/image-base.html');
 app.engine('html', hoganExpress);
 
 /*
@@ -63,15 +72,31 @@ app.use('/static/', express.static(__dirname + '/static/'));
 app.use('/image-store/', express.static(__dirname + '/image-store/'));
 
 /*
-Routing for rendering templates.
+Route - Templates index
 */
-app.get('/html/:template/', function(req, res){
-    var data = req.query;
-    res.render(req.params.template + '/index.html', data);
+app.get('/', function(req, res) {
+    res.render('app/index.html', {
+        templates : TEMPLATES,
+        layout: '_layouts/app-base.html'
+    });
 });
 
 /*
-Render a template using phantomjs & respond as an image.
+Route - Template rendered
+*/
+app.get('/html/:template/', function(req, res) {
+    var data = req.query;
+    var template = req.params.template;
+
+    if (!_.contains(TEMPLATES, template)) {
+        res.status(404).end();
+    }
+
+    res.render('images/' + template + '/index.html', data);
+});
+
+/*
+Route - Render a template using phantomjs & respond as an image.
 */
 app.get('/image/:width/:height/:template/', function(req, res){
 
@@ -117,8 +142,7 @@ app.get('/image/:width/:height/:template/', function(req, res){
             return redirectToImage();
         }
 
-        res.send(503);
-        res.end();
+        res.status(503).end();
     }
 
     /*
