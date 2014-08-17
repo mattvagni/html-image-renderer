@@ -1,22 +1,22 @@
 {
   "name": "html-image-renderer",
   "version": "0.0.0",
-  "description": "html-image-renderer ===================",
+  "description": "html-image-renderer-thing",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "repository": {
     "type": "git",
     "url": "git://github.com/mattvagni/html-image-renderer.git"
   },
-  "author": "",
+  "author": "Matt Vagni",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/mattvagni/html-image-renderer/issues"
   },
   "homepage": "https://github.com/mattvagni/html-image-renderer",
-  "devDependencies": {
-    "express": "^4.8.4"
+  "dependencies": {
+    "express": "^4.8.4",
+    "hogan-express": "^0.5.2",
+    "morgan": "^1.2.2",
+    "colors": "^0.6.2"
   }
 }
