@@ -53,16 +53,31 @@ Before firing up phantomjs to generate an image, it checks whether you have the 
 
 This means that you must bump the version when you want to invalidate the cache/make any global css changes that could effect any templates.
 
+After a while, this is what your image-store should look like:
+
     - 0.0.1
         - 200x200
             - foo
                 - 7c20f3372ef740c4eb08ca56f44335a5.jpeg
                 - d41d8cd98f00b204e9800998ecf8427e.jpeg
+                - etc...
         - 400x500
             - foo
                 - d41d8cd98f00b204e9800998ecf8427e.jpeg
+                - etc...
+
+    - 0.0.2
+        - 200x200
+            - foo
+                - 7c20f3372ef740c4eb08ca56f44335a5.jpeg
+                - d41d8cd98f00b204e9800998ecf8427e.jpeg
+                - etc...
+        - 400x500
+            - foo
+                - d41d8cd98f00b204e9800998ecf8427e.jpeg
+                - etc...
 
 ---
 
-### TODO
+### TO-DO
 - Improve error handling and reporting from the phantomjs process.
