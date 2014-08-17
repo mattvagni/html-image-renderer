@@ -1,0 +1,37 @@
+body {
+    font-family: sans-serif;
+}
+
+.centered-title {
+    text-align: center;
+    font-size: 22px;
+    font-weight: 300;
+    margin: 50px 0;
+}
+
+.templates-list {
+    width: 500px;
+    margin: 0 auto;
+    padding: 0;
+    display: block;
+    border-top: 2px solid #F7F7F7;
+}
+
+.template {
+    border-bottom: 2px solid #F7F7F7;
+    list-style: none;
+}
+
+.template-link {
+    font-weight: 200;
+    line-height: 50px;
+    display: block;
+    padding: 0 0 0 13px;
+    text-decoration: none;
+    color: #3C77D4;
+}
+
+.template-link:hover {
+    background: #3C77D4;
+    color: #FFF;
+}
