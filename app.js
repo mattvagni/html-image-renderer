@@ -135,11 +135,11 @@ app.get('/image/:width/:height/:template/', function(req, res){
         phantom.on('close', onPhantomClose);
 
         phantom.stdout.on('data', function (data) {
-          console.log('stdout: ' + data);
+            console.log('phantomjs stdout: ' + data);
         });
 
         phantom.stderr.on('data', function (data) {
-          console.log('stderr: ' + data);
+            console.log('phantomjs stderr: ' + data);
         });
     }
 
@@ -158,10 +158,10 @@ app.get('/image/:width/:height/:template/', function(req, res){
     Check if the file allready exists. If it does then just redirect.
     */
     fs.exists(screenshotPath, function (exists) {
-      if (exists) {
-          return redirectToImage();
-      }
-      spawnPhantom();
+        if (exists) {
+            return redirectToImage();
+        }
+        spawnPhantom();
     });
 });
 
