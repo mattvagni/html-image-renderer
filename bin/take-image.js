@@ -4,6 +4,11 @@ var argsObject = {};
 var webPage = require('webpage');
 var page = webPage.create();
 
+var options = {
+    width : 1280,
+    height : 990,
+    maxTimeout : 5000
+};
 
 /*
 This generates an object from the command line args.
@@ -14,6 +19,9 @@ rejoin the rest.
 This means you can pass options such as "url=http://url.com/lol=foo" and
 get: { url : 'http://url.com/lol=foo' }
 
+Since these are called not from node but from phantomjs there is a lot of
+weirdness that happens when using packages like nomnom etc. to parse
+the command line args. Hence this weird solution.
 */
 args.forEach(function(arg, i) {
     if (i == 0) { // Ingnore the file path.
@@ -21,17 +29,42 @@ args.forEach(function(arg, i) {
     }
     var splitArgs = arg.split("=");
     var argName = splitArgs.shift();
-    argsObject[argName] = splitArgs.join("=");
+    options[argName] = splitArgs.join("=");
 });
 
+/*
+Exit if a url or outputImage path hasn't been provided.
+*/
+if (!options.url || !options.outputImage){
+    phantom.exit(1);
+}
+
+/*
+What's the size of the screen?
+*/
 page.viewportSize = {
-    width: argsObject.width || 600,
-    height: argsObject.height || 600
+    width: options.width,
+    height: options.height
 };
 
-page.open(argsObject.url, function (status) {
+/*
+Don't render the full page, only render the viewport.
+We want an image in the exact size we requested.
+*/
+page.clipRect = {
+  top: 0,
+  left: 0,
+  width: options.width,
+  height: options.height
+};
+
+/*
+Open the page and take a screenshot.
+Image format is infered from outputImage path.
+*/
+page.open(options.url, function (status) {
     if (status === 'success'){
-        page.render(argsObject.outputImagePath, { quality: 100 });
+        page.render(options.outputImage, { quality: 100 });
         phantom.exit(0);
     }
     else {
@@ -39,7 +72,9 @@ page.open(argsObject.url, function (status) {
     }
 });
 
-// Just you.. know.. in case of an emergency.
+/*
+Timeout after a magic number/amount of time.
+*/
 setTimeout(function(){
     phantom.exit(1);
-}, 2000);
+}, options.maxTimeout);

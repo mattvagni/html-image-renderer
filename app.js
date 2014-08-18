@@ -125,13 +125,22 @@ app.get('/image/:width/:height/:template/', function(req, res){
     function spawnPhantom() {
         phantom = childProcess.spawn('phantomjs', [
             __dirname + '/bin/take-image.js',
-            'outputImagePath=' + screenshotPath,
+            'outputImage=' + screenshotPath,
             'url=' + templateUrl ,
             'width=' + width,
-            'height=' + height
+            'height=' + height,
+            'maxTimeout=' + 2000
         ]);
 
         phantom.on('close', onPhantomClose);
+
+        phantom.stdout.on('data', function (data) {
+          console.log('stdout: ' + data);
+        });
+
+        phantom.stderr.on('data', function (data) {
+          console.log('stderr: ' + data);
+        });
     }
 
     /*
