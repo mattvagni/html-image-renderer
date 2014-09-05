@@ -9,33 +9,46 @@ var fs = require('fs');
 var _ = require('underscore');
 var http = require('http');
 
+var server;
+
+var options = require("nomnom")
+    .option('app_port', {
+      help: 'The port on which to run the main app.',
+      default : 3000,
+    })
+    .option('phantom_ports', {
+        help: 'A list of ports on which you\'d like to start a phantom child process. An instance of phantomjs will be started for each port and reqeusts will be distributed accross them. Each phantomjs can deal with 10 concurrent requests.',
+        default : [6666],
+        list : true,
+        position: 0
+    })
+    .option('cache', {
+        help: 'Enables or disables the cache which will rerender each image every time.',
+        default: true
+    })
+    .parse();
+
 /*
 Yo, the app.
 */
 var app = express();
 
 /*
-Ports
-*/
-var APP_PORT = 3000;
-var PHANTOM_PORT = 6666;
-
-/*
 The maximum amount of time we are going to give phantom to
 render an image.
 */
-var PHANTOM_MAX_TIMEOUT = 500;
+var PHANTOM_MAX_TIMEOUT = 1000;
 
 /*
-Cache (if true, returns images from disk if it has them allready.)
+Stores a list of phantom processes & the port they run on
+e.g [{ process: , port: }, ...]
 */
-var CACHE_ENABLED = false;
+var PHANTOM_PROCESSES = [];
 
 /*
 A list of available templates.
 */
 var TEMPLATES = fs.readdirSync(__dirname + '/templates/images/');
-
 
 
 /*
@@ -69,7 +82,7 @@ equivalent path for the template, i.e: /image/foo/?bar=yolo
 */
 function makeTemplateUrlFromImageUrl(reqUrl, templateName, templateData) {
     var search = url.parse(reqUrl, true).search;
-    return 'http://localhost:' + APP_PORT + '/html/' + templateName + '/' + search;
+    return 'http://localhost:' + options.app_port + '/html/' + templateName + '/' + search;
 }
 
 /*
@@ -86,7 +99,7 @@ function takeScreenshot(options, callback) {
     });
 
     var phantomRequest = http.request({
-        port: PHANTOM_PORT,
+        port: PHANTOM_PROCESSES[0].port,
         path: '/',
         method: 'POST',
         headers: {
@@ -97,11 +110,43 @@ function takeScreenshot(options, callback) {
         callback();
     });
 
+    // Distribute requests accross the available
+    // phantom processes.
+    PHANTOM_PROCESSES.push(PHANTOM_PROCESSES.shift());
+
     // Send post data.
     phantomRequest.write(postData + '\n');
     phantomRequest.end();
 }
 
+
+/*
+Spawn X child processes of Phantom
+*/
+function spawnPhantoms(number) {
+
+    for (var i = 0; i < number; i++) {
+
+        var port = options.phantom_ports[i];
+        var phantom = childProcess.spawn('phantomjs', [
+            __dirname + '/phantomjs.js',
+            port
+        ]);
+
+        phantom.stdout.on('data', function (data) {
+            console.log('phantomjs stdout: ' + data);
+        });
+
+        phantom.stderr.on('data', function (data) {
+            console.log('phantomjs stderr: ' + data);
+        });
+
+        PHANTOM_PROCESSES.push({
+            port : port,
+            process : phantom
+        });
+    }
+};
 
 /*
 Setup
@@ -169,9 +214,9 @@ app.get('/image/:width/:height/:template/', function(req, res){
         res.end();
     }
 
-    // Check if the file allready exists. If it does then just redirect.
+    // Check if the file allready exists. If it does then just redirect to it.
     fs.exists(renderedImagePath, function (exists) {
-        if (exists && CACHE_ENABLED) {
+        if (exists && options.cache) {
             return redirectToImage();
         }
         takeScreenshot(screenshotOptions, redirectToImage);
@@ -181,6 +226,12 @@ app.get('/image/:width/:height/:template/', function(req, res){
 /*
 Let's get this show on the road
 */
-var server = app.listen(APP_PORT, function() {
-    console.log('Listening on port %d', server.address().port);
+spawnPhantoms(options.phantom_ports.length);
+
+/*
+Start the server
+*/
+server = app.listen(options.app_port, function() {
+    console.log('%d child processes of PhantomJS were started on port(s): %s', options.phantom_ports.length, options.phantom_ports.join(', '));
+    console.log('Main app is listening on port %d', server.address().port);
 });
