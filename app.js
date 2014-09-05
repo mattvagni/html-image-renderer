@@ -7,16 +7,36 @@ var childProcess = require('child_process');
 var url = require('url');
 var fs = require('fs');
 var _ = require('underscore');
+var http = require('http');
 
 /*
-Port on which to do magic.
+Yo, the app.
 */
-var PORT = 3000;
+var app = express();
+
+/*
+Ports
+*/
+var APP_PORT = 3000;
+var PHANTOM_PORT = 6666;
+
+/*
+The maximum amount of time we are going to give phantom to
+render an image.
+*/
+var PHANTOM_MAX_TIMEOUT = 500;
+
+/*
+Cache (if true, returns images from disk if it has them allready.)
+*/
+var CACHE_ENABLED = false;
 
 /*
 A list of available templates.
 */
 var TEMPLATES = fs.readdirSync(__dirname + '/templates/images/');
+
+
 
 /*
 Return a unique image url based on the version of renderer, template & data
@@ -49,13 +69,39 @@ equivalent path for the template, i.e: /image/foo/?bar=yolo
 */
 function makeTemplateUrlFromImageUrl(reqUrl, templateName, templateData) {
     var search = url.parse(reqUrl, true).search;
-    return 'http://localhost:' + PORT + '/html/' + templateName + '/' + search;
+    return 'http://localhost:' + APP_PORT + '/html/' + templateName + '/' + search;
 }
 
 /*
-Yo, the app.
+Take a screenshot by posting to the next available phantomJS server.
 */
-var app = express();
+function takeScreenshot(options, callback) {
+
+    var postData = JSON.stringify({
+        width : options.width,
+        height : options.height,
+        url : options.url,
+        renderedImagePath : options.renderedImagePath,
+        maxTimeout : PHANTOM_MAX_TIMEOUT
+    });
+
+    var phantomRequest = http.request({
+        port: PHANTOM_PORT,
+        path: '/',
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Content-Length': postData.length
+        }
+    }, function(){
+        callback();
+    });
+
+    // Send post data.
+    phantomRequest.write(postData + '\n');
+    phantomRequest.end();
+}
+
 
 /*
 Setup
@@ -82,7 +128,7 @@ app.get('/', function(req, res) {
 });
 
 /*
-Route - Template rendered
+Route - Rendere a template.
 */
 app.get('/html/:template/', function(req, res) {
     var data = req.query;
@@ -102,72 +148,39 @@ app.get('/image/:width/:height/:template/', function(req, res){
 
     var width = req.params.width;
     var height = req.params.height;
+
     var templateData = req.query;
     var templateName = req.params.template;
     var templateUrl = makeTemplateUrlFromImageUrl(req.url, templateName, templateData);
 
-    var screenshotUrl = makeImageUrl(width, height, templateName, templateData);
-    var screenshotPath = __dirname + screenshotUrl;
+    var renderedImageUrl = makeImageUrl(width, height, templateName, templateData);
+    var renderedImagePath = __dirname + renderedImageUrl;
 
-    var phantom;
+    var screenshotOptions = {
+        url : templateUrl,
+        width : width,
+        height : height,
+        renderedImagePath : renderedImagePath
+    };
 
-    /*
-    Redirect the user to the image.
-    */
+    // Redirect the user to the image.
     function redirectToImage() {
-        res.redirect(screenshotUrl);
+        res.redirect(renderedImageUrl);
         res.end();
     }
 
-    /*
-    Spawn Phantom
-    */
-    function spawnPhantom() {
-        phantom = childProcess.spawn('phantomjs', [
-            __dirname + '/bin/take-image.js',
-            'outputImage=' + screenshotPath,
-            'url=' + templateUrl ,
-            'width=' + width,
-            'height=' + height,
-            'maxTimeout=' + 2000
-        ]);
-
-        phantom.on('close', onPhantomClose);
-
-        phantom.stdout.on('data', function (data) {
-            console.log('phantomjs stdout: ' + data);
-        });
-
-        phantom.stderr.on('data', function (data) {
-            console.log('phantomjs stderr: ' + data);
-        });
-    }
-
-    /*
-    Close handler for phantom child proccess
-    */
-    function onPhantomClose(code) {
-        if (code == 0) {
+    // Check if the file allready exists. If it does then just redirect.
+    fs.exists(renderedImagePath, function (exists) {
+        if (exists && CACHE_ENABLED) {
             return redirectToImage();
         }
-
-        res.status(503).end();
-    }
-
-    /*
-    Check if the file allready exists. If it does then just redirect.
-    */
-    fs.exists(screenshotPath, function (exists) {
-        if (exists) {
-            return redirectToImage();
-        }
-        spawnPhantom();
+        takeScreenshot(screenshotOptions, redirectToImage);
     });
 });
 
 /*
 Let's get this show on the road
 */
-var server = app.listen(PORT, function() {
+var server = app.listen(APP_PORT, function() {
     console.log('Listening on port %d', server.address().port);
 });
