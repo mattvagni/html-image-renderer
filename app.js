@@ -1,12 +1,15 @@
-var express = require('express');
-var hoganExpress = require('hogan-express');
-var morgan = require('morgan');
-var packageJSON = require('./package.json');
+// Node
 var childProcess = require('child_process');
 var url = require('url');
 var fs = require('fs');
-var _ = require('underscore');
 var http = require('http');
+
+// Libs
+var express = require('express');
+var hoganExpress = require('hogan-express');
+var morgan = require('morgan');
+var _ = require('underscore');
+var nomnom = require('nomnom');
 
 var server;
 
@@ -40,20 +43,15 @@ var TEMPLATES = fs.readdirSync(__dirname + '/templates/images/');
 Setup our options
 Use --help when invoking this for... you... know... help.
 */
-var options = require("nomnom")
+var options = nomnom
     .option('app_port', {
       help: 'The port on which to run the main app.',
       default : 3000,
     })
     .option('phantom_ports', {
         help: 'A list of ports on which you\'d like to start a phantom child process. An instance of phantomjs will be started for each port and reqeusts will be distributed accross them. Each phantomjs can deal with 10 concurrent requests.',
-        default : [6001, 6002],
         list : true,
         position: 0
-    })
-    .option('cache', {
-        help: 'Enables or disables the cache which will rerender each image every time.',
-        default: true
     })
     .parse();
 

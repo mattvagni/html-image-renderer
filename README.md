@@ -9,7 +9,7 @@ The idea is that this could be useful, maybe, one day, to avoid having to write 
 ### Setup
     npm install -g phantomjs
     npm install
-    node app.js
+    node app.js --help
 
 ---
 
@@ -27,17 +27,18 @@ So, for example, `/html/foo/?name=matt` would render `/templates/foo/index.html`
 ---
 
 ### Creating Templates
+
 Just create a folder within `templates/images` with a single index.html. Make sure it's responsive since the screenshots can be generated at *any* size.
 
 ---
 
-### Creating images
+### API
 
 Creating images can be done directly in an image tag using specific url structure.
 
 The url structure for generating images is:
 
-    /image/:image_width/:image_height/:template_name/
+    /image/:image_width/:image_height/:template_name/?foo=bar
 
 This will return an image in your specified width and height created by rendering the template in the specified template name.
 
@@ -45,37 +46,9 @@ If the template you are rendering to as an image accepts dynamic data, like when
 
 ---
 
-### So called 'Caching'
-When an image has been created it is stored in the 'image-store' folder.
-The folder structure structure is such that the first level is the package.json version number, the second level is the requested size (width x height) and the third level is a hash of the provided template data.
+### 'Scaling'
 
-Before firing up phantomjs to generate an image, it checks whether you have the image already in which case it just returns it.
-
-This means that you must bump the version when you want to invalidate the cache/make any global css changes that could effect any templates.
-
-After a while, this is what your image-store should look like:
-
-    - 0.0.1
-        - 200x200
-            - foo
-                - 7c20f3372ef740c4eb08ca56f44335a5.jpeg
-                - d41d8cd98f00b204e9800998ecf8427e.jpeg
-                - etc...
-        - 400x500
-            - foo
-                - d41d8cd98f00b204e9800998ecf8427e.jpeg
-                - etc...
-
-    - 0.0.2
-        - 200x200
-            - foo
-                - 7c20f3372ef740c4eb08ca56f44335a5.jpeg
-                - d41d8cd98f00b204e9800998ecf8427e.jpeg
-                - etc...
-        - 400x500
-            - foo
-                - d41d8cd98f00b204e9800998ecf8427e.jpeg
-                - etc...
+To handle more requests you can spin up multiple instances of phantomjs by passing a list of ports on which you'd like to run them on. For example, if you want to have 5 phantomjs servers: ```node app.js 6000 6001 6002```
 
 ---
 
