@@ -53,4 +53,4 @@ To handle more requests you can spin up multiple instances of phantomjs by passi
 ---
 
 ### TO-DO
-- Improve error handling and reporting from the phantomjs process.
+- Improve error handling and reporting from phantomjs.
