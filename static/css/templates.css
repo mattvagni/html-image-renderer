@@ -52,10 +52,13 @@ Image Blur Module
     height: 100%;
 }
 
-.image-blur-wrapper {
+.image-blur-zoom {
     /*
-    Slight 'zoom' makes it nicer since it cut's off the edges of the blur
-    that would otherwise go 'light';
+    Slight 'zoom' makes it nicer since it cut's off the edges of
+    the blur that would otherwise go 'light';
+
+    If you do this on the image directly, then the filter will be
+    applied after the zoom.
     */
     -webkit-transform: scale(1.5);
     width: 100%;
