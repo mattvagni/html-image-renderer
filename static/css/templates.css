@@ -21,7 +21,7 @@ body {
 /*
 Foo - Test Module
 */
-.foo {
+.cat-with-text-wrapper {
     background: url('/static/images/cat.jpg');
     background-size: cover;
     position: absolute;
@@ -33,7 +33,7 @@ Foo - Test Module
     text-align: center;
 }
 
-.foo-text {
+.cat-with-text-inner-wrapper {
     display: table-cell;
     vertical-align: middle;
     color: #FFF;
@@ -43,44 +43,31 @@ Foo - Test Module
 }
 
 
-
 /*
-Bar - Test Module
-!!Careful: Terrible CSS coming up used for testing.
+Image Blur Module
 */
-.bar li {
-    font-size: 20px;
+.image-blur {
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
 }
 
-.bar li:nth-child(2n) {
-    color: red;
+.image-blur-wrapper {
+    /*
+    Slight 'zoom' makes it nicer since it cut's off the edges of the blur
+    that would otherwise go 'light';
+    */
+    -webkit-transform: scale(1.5);
+    width: 100%;
+    height: 100%;
 }
 
-.bar li li:nth-child(3n) {
-    font-weight: bold;
-}
-
-.bar li li:nth-child(4n) {
-    background: rgba(200,200,0, 0.4);
-}
-
-.bar li:nth-child(5n) {
-    font-style: italic;
-}
-
-.bar li li:nth-child(6n) {
-    margin: 20px;
-}
-
-.bar li li:nth-child(9n + 2) {
-    background: red;
-    color: blue;
+.image-blur-image {
+    -webkit-filter: blur(50px);
+    background-size: cover;
+    background-position: center center;
+    height: 100%;
+    width: 100%;
 }
 
 
-
-@media (max-width: 500px) {
-  .foo {
-      border-color: red;
-  }
-}

@@ -183,9 +183,8 @@ app.engine('html', hoganExpress);
 /*
 Middleware
 */
-app.use('/', morgan('tiny'));
 app.use('/static/', express.static(__dirname + '/static/'));
-
+app.use('/image/', morgan('tiny'));
 
 /*
 Route - Templates index
