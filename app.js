@@ -36,7 +36,7 @@ var PHANTOM_PROCESSES = [];
 /*
 A list of available templates.
 */
-var TEMPLATES = fs.readdirSync(__dirname + '/templates/images/');
+var TEMPLATES = fs.readdirSync(__dirname + '/templates/image-templates/');
 
 
 /*
@@ -86,8 +86,9 @@ Returns next available phantomjs port.
 function getNextPhantomPort() {
     // Distribute requests accross the available
     // phantom processes.
+    var port = PHANTOM_PROCESSES[0].port;
     PHANTOM_PROCESSES.push(PHANTOM_PROCESSES.shift());
-    return PHANTOM_PROCESSES[0].port;
+    return port;
 };
 
 
@@ -146,12 +147,10 @@ Spawn X child processes of Phantom
 */
 function spawnPhantoms(number) {
 
-    var phantom;
-
     for (var i = 0; i < number; i++) {
 
         var port = options.phantom_ports[i];
-        phantom = childProcess.spawn('phantomjs', [
+        var phantom = childProcess.spawn('phantomjs', [
             __dirname + '/phantomjs.js',
             port
         ]);
@@ -184,13 +183,14 @@ app.engine('html', hoganExpress);
 Middleware
 */
 app.use('/static/', express.static(__dirname + '/static/'));
-app.use('/image/', morgan('tiny'));
+app.use('/', morgan('tiny'));
+
 
 /*
 Route - Templates index
 */
 app.get('/', function(req, res) {
-    res.render('app/index.html', {
+    res.render('app-templates/index.html', {
         templates : TEMPLATES,
         layout: '_layouts/app-base.html'
     });
@@ -208,7 +208,7 @@ app.get('/html/:template/', function(req, res) {
         res.status(404).end();
     }
 
-    res.render('images/' + template + '/index.html', data);
+    res.render('image-templates/' + template + '/index.html', data);
 });
 
 
